@@ -37,6 +37,13 @@ app.get('/stream', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Access-Control-Allow-Origin', '*');
 
+  const ffmpegExecutable = process.env.FFMPEG_PATH || ffmpegPath;
+
+  if (!ffmpegExecutable) {
+    console.error('[ffmpeg] No executable found. Set FFMPEG_PATH to a valid ffmpeg binary.');
+    return res.status(500).json({ message: 'FFmpeg executable not found' });
+  }
+
   const args = [
     '-reconnect', '1',
     '-reconnect_streamed', '1',
@@ -51,7 +58,7 @@ app.get('/stream', (req, res) => {
     'pipe:1',
   ];
 
-  const ffmpeg = spawn(ffmpegPath, args, { windowsHide: true });
+  const ffmpeg = spawn(ffmpegExecutable, args, { windowsHide: true });
 
   const teardown = () => {
     if (!res.writableEnded) {
